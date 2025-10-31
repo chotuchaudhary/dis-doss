@@ -1,0 +1,62 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: doc-searcher
+  
+  cloud:
+    function:
+      definition: documentCreate;documentUpdate;documentDelete
+    stream:
+      bindings:
+        documentCreate-in-0:
+          destination: document-create
+          group: searcher-group
+          content-type: application/json
+        documentUpdate-in-0:
+          destination: document-update
+          group: searcher-group
+          content-type: application/json
+        documentDelete-in-0:
+          destination: document-delete
+          group: searcher-group
+          content-type: application/json
+      rabbit:
+        bindings:
+          documentCreate-in-0:
+            consumer:
+              exchange: document-exchange
+              routing-key: document.create
+              durable-subscription: true
+          documentUpdate-in-0:
+            consumer:
+              exchange: document-exchange
+              routing-key: document.update
+              durable-subscription: true
+          documentDelete-in-0:
+            consumer:
+              exchange: document-exchange
+              routing-key: document.delete
+              durable-subscription: true
+      default:
+        consumer:
+          max-attempts: 3
+          back-off-initial-interval: 1000
+        producer:
+          error-channel-enabled: true
+  
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+elasticsearch:
+  hosts:
+    - localhost:9200
+
+logging:
+  level:
+    ai.deeprunner.searcher: DEBUG
+    org.springframework.cloud.stream: DEBUG
